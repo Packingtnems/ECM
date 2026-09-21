@@ -196,8 +196,7 @@ textarea {
 
     <video id="video"
            autoplay
-           playsinline
-           muted>
+           playsinline>
     </video>
 
     <div class="guide"></div>
@@ -326,48 +325,84 @@ MỞ CAMERA
 */
 
 async function startCamera() {
+
     try {
-        // Kiểm tra xem trình duyệt có hỗ trợ API Camera không
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert("Trình duyệt không hỗ trợ Camera hoặc bạn đang không chạy trên môi trường bảo mật (HTTPS/Localhost).");
-            return;
-        }
 
         if (stream) {
+
             stream.getTracks().forEach(track => track.stop());
+
         }
 
         stream = await navigator.mediaDevices.getUserMedia({
+
             video: {
-                facingMode: { ideal: "environment" },
-                width: { ideal: 1920 },
-                height: { ideal: 1080 }
+
+                facingMode: {
+                    ideal: "environment"
+                },
+
+                width: {
+                    ideal: 1920
+                },
+
+                height: {
+                    ideal: 1080
+                }
+
             },
+
             audio: false
+
         });
 
-        const video = document.getElementById("video");
+
+        const video =
+            document.getElementById("video");
+
         video.srcObject = stream;
+
         await video.play();
 
-        videoTrack = stream.getVideoTracks()[0];
 
-        // Lấy thông số zoom nếu thiết bị hỗ trợ
-        const capabilities = videoTrack.getCapabilities();
+        videoTrack =
+            stream.getVideoTracks()[0];
+
+
+        const capabilities =
+            videoTrack.getCapabilities();
+
 
         if (capabilities.zoom) {
+
             maxZoom = capabilities.zoom.max || 1;
-            currentZoom = capabilities.zoom.min || 1;
+
+            currentZoom =
+                capabilities.zoom.min || 1;
+
         } else {
+
             maxZoom = 4;
+
             currentZoom = 1;
+
         }
+
 
         updateZoom();
 
-    } catch (error) {
-        alert("Không mở được camera.\nLý do: " + error.name + "\nChi tiết: " + error.message + "\n\nHãy đảm bảo bạn đã cấp quyền Camera và đang chạy web trên HTTPS/Localhost.");
+
     }
+
+    catch (error) {
+
+        alert(
+            "Không mở được camera.\n\n" +
+            error.message
+        );
+
+    }
+
 }
 
 
