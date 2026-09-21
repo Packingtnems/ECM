@@ -2,343 +2,107 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>OCR QC - 2583</title>
-
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
 <style>
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #111;
-    color: white;
-}
-
-.header {
-    text-align: center;
-    padding: 14px 10px;
-    background: #222;
-    font-size: 22px;
-    font-weight: bold;
-}
-
-.camera-box {
-    position: relative;
-    width: 100%;
-    background: #000;
-    overflow: hidden;
-}
-
-#video {
-    width: 100%;
-    display: block;
-    background: #000;
-}
-
-.guide {
-    position: absolute;
-    left: 8%;
-    right: 8%;
-    top: 35%;
-    height: 30%;
-
-    border: 3px solid #00ff66;
-    border-radius: 8px;
-
-    pointer-events: none;
-}
-
-.guide-text {
-    position: absolute;
-    top: calc(35% - 30px);
-    width: 100%;
-    text-align: center;
-    color: #00ff66;
-    font-weight: bold;
-    pointer-events: none;
-}
-
-.controls {
-    padding: 12px;
-    background: #222;
-}
-
-button {
-    border: none;
-    border-radius: 8px;
-    padding: 14px 18px;
-    margin: 4px;
-    font-size: 17px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.btn-start {
-    background: #00c853;
-    color: white;
-}
-
-.btn-capture {
-    width: calc(100% - 8px);
-    background: #2196f3;
-    color: white;
-    font-size: 21px;
-}
-
-.btn-zoom {
-    background: #555;
-    color: white;
-    min-width: 65px;
-}
-
-.zoom-value {
-    display: inline-block;
-    min-width: 70px;
-    text-align: center;
-    font-size: 18px;
-}
-
-input {
-    width: 100%;
-    padding: 13px;
-    margin-top: 6px;
-    border-radius: 7px;
-    border: 1px solid #777;
-    background: #333;
-    color: white;
-    font-size: 19px;
-}
-
-.result {
-    margin: 12px;
-    padding: 15px;
-    border-radius: 10px;
-    background: #222;
-}
-
-.row {
-    margin: 10px 0;
-}
-
-.label {
-    color: #aaa;
-    font-size: 14px;
-}
-
-.value {
-    font-size: 23px;
-    font-weight: bold;
-    margin-top: 3px;
-}
-
-.pass {
-    background: #087f23;
-}
-
-.fail {
-    background: #b00020;
-}
-
-.status {
-    text-align: center;
-    font-size: 30px;
-    font-weight: bold;
-    padding: 15px;
-    border-radius: 10px;
-    margin-top: 15px;
-}
-
-#preview {
-    width: 100%;
-    display: none;
-    margin-top: 10px;
-    border: 1px solid #00ff66;
-}
-
-#progress {
-    margin-top: 10px;
-    color: #00e676;
-}
-
-.expected {
-    background: #333;
-    padding: 12px;
-    margin: 10px 0;
-    border-radius: 8px;
-}
-
-textarea {
-    width: 100%;
-    min-height: 100px;
-    background: #222;
-    color: white;
-    border: 1px solid #666;
-    border-radius: 8px;
-    padding: 10px;
-    font-size: 16px;
-}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; background: #111; color: white; }
+.header { text-align: center; padding: 14px 10px; background: #222; font-size: 22px; font-weight: bold; }
+.camera-box { position: relative; width: 100%; background: #000; overflow: hidden; }
+#video { width: 100%; display: block; background: #000; }
+.guide { position: absolute; left: 8%; right: 8%; top: 35%; height: 30%; border: 3px solid #00ff66; border-radius: 8px; pointer-events: none; }
+.guide-text { position: absolute; top: calc(35% - 30px); width: 100%; text-align: center; color: #00ff66; font-weight: bold; pointer-events: none; }
+.controls { padding: 12px; background: #222; }
+button { border: none; border-radius: 8px; padding: 14px 18px; margin: 4px; font-size: 17px; font-weight: bold; cursor: pointer; }
+.btn-start { background: #00c853; color: white; }
+.btn-capture { width: calc(100% - 8px); background: #2196f3; color: white; font-size: 21px; margin-top: 10px; }
+.btn-zoom { background: #555; color: white; min-width: 65px; }
+.zoom-value { display: inline-block; min-width: 70px; text-align: center; font-size: 18px; }
+input { width: 100%; padding: 13px; margin-top: 6px; border-radius: 7px; border: 1px solid #777; background: #333; color: white; font-size: 19px; }
+.result { margin: 12px; padding: 15px; border-radius: 10px; background: #222; }
+.row { margin: 10px 0; }
+.label { color: #aaa; font-size: 14px; }
+.status { text-align: center; font-size: 30px; font-weight: bold; padding: 15px; border-radius: 10px; margin-top: 15px; }
+.pass { background: #087f23; }
+.fail { background: #b00020; }
+#preview { width: 100%; display: none; margin-top: 10px; border: 2px solid #00ff66; border-radius: 5px; }
+#progress { margin-top: 10px; color: #00e676; font-weight: bold; }
+.expected { background: #333; padding: 12px; margin: 10px 0; border-radius: 8px; }
+textarea { width: 100%; min-height: 100px; background: #222; color: white; border: 1px solid #666; border-radius: 8px; padding: 10px; font-size: 16px; }
 </style>
 </head>
-
 <body>
 
-<div class="header">
-    OCR QC
-</div>
+<div class="header">OCR QC</div>
 
 <div class="camera-box">
-
-    <video id="video"
-           autoplay
-           playsinline
-           muted>
-    </video>
-
+    <video id="video" autoplay playsinline muted></video>
     <div class="guide"></div>
-
-    <div class="guide-text">
-        Đưa nhãn vào khung
-    </div>
-
+    <div class="guide-text">Đưa nhãn vào khung</div>
 </div>
 
 <div class="controls">
-
-    <button class="btn-start" onclick="startCamera()">
-        📷 MỞ CAMERA
-    </button>
-
+    <button class="btn-start" onclick="startCamera()">📷 MỞ CAMERA</button>
     <br>
-
-    <button class="btn-zoom" onclick="changeZoom(-0.5)">
-        −
-    </button>
-
-    <span class="zoom-value" id="zoomValue">
-        1.0x
-    </span>
-
-    <button class="btn-zoom" onclick="changeZoom(0.5)">
-        ＋
-    </button>
-
+    <button class="btn-zoom" onclick="changeZoom(-0.5)">−</button>
+    <span class="zoom-value" id="zoomValue">1.0x</span>
+    <button class="btn-zoom" onclick="changeZoom(0.5)">＋</button>
     <br>
-
-    <button class="btn-capture" onclick="captureImage()">
-        📸 CHỤP & OCR
-    </button>
-
+    <button class="btn-capture" onclick="captureImage()">📸 CHỤP & OCR</button>
     <div id="progress"></div>
-
     <canvas id="canvas" style="display:none"></canvas>
-
-    <div style="font-size: 12px; color: #888; margin-top: 5px;">Ảnh cắt đã qua tiền xử lý:</div>
+    <div style="font-size: 12px; color: #aaa; margin-top: 8px;">Ảnh cắt đã qua tiền xử lý (Lấp đầy font rỗng):</div>
     <img id="preview">
-
 </div>
 
-
 <div class="result">
-
     <div class="expected">
         <b>DỮ LIỆU CẦN KIỂM TRA</b>
-
         <div class="row">
             <div class="label">MODEL</div>
-            <input id="expectedModel"
-                   value="2583-236">
+            <input id="expectedModel" value="2583-236">
         </div>
-
         <div class="row">
             <div class="label">CODE</div>
-            <input id="expectedCode"
-                   value="2638IV">
+            <input id="expectedCode" value="2638IV">
         </div>
     </div>
 
-
     <div class="row">
-        <div class="label">
-            MODEL OCR
-        </div>
-
+        <div class="label">MODEL OCR</div>
         <input id="modelOCR">
     </div>
-
-
     <div class="row">
-        <div class="label">
-            CODE OCR
-        </div>
-
+        <div class="label">CODE OCR</div>
         <input id="codeOCR">
-
-        <div style="font-size:13px;color:#aaa;margin-top:5px">
-            Chỉ lấy 6 ký tự đầu, 4 số cuối sẽ bỏ qua.
-        </div>
+        <div style="font-size:13px;color:#aaa;margin-top:5px">Đã tự động lọc 6 ký tự đầu.</div>
     </div>
-
-
-    <button
-        style="width:100%;background:#ff9800;color:white"
-        onclick="checkResult()">
-
-        KIỂM TRA PASS / FAIL
-
-    </button>
-
-
+    <button style="width:100%;background:#ff9800;color:white;margin-top:10px;" onclick="checkResult()">KIỂM TRA PASS / FAIL</button>
     <div id="status"></div>
-
 </div>
-
 
 <div class="result">
-
     <b>TEXT OCR GỐC</b>
-
-    <textarea id="rawOCR"
-              readonly></textarea>
-
+    <textarea id="rawOCR" readonly></textarea>
 </div>
 
-
 <script>
-
 let stream = null;
 let videoTrack = null;
 let currentZoom = 1;
 let maxZoom = 1;
 
-/*
-====================================================
-MỞ CAMERA
-====================================================
-*/
+// 1. MỞ CAMERA
 async function startCamera() {
     try {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert("Trình duyệt không hỗ trợ Camera hoặc chưa chạy trên HTTPS/Localhost.");
-            return;
+            alert("Trình duyệt không hỗ trợ Camera."); return;
         }
-
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-        }
+        if (stream) stream.getTracks().forEach(track => track.stop());
 
         stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: { ideal: "environment" },
-                width: { ideal: 1920 },
-                height: { ideal: 1080 }
-            },
+            video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
             audio: false
         });
 
@@ -348,124 +112,91 @@ async function startCamera() {
 
         videoTrack = stream.getVideoTracks()[0];
         const capabilities = videoTrack.getCapabilities();
-
         if (capabilities.zoom) {
             maxZoom = capabilities.zoom.max || 1;
             currentZoom = capabilities.zoom.min || 1;
-        } else {
-            maxZoom = 4;
-            currentZoom = 1;
-        }
-
+        } else { maxZoom = 4; currentZoom = 1; }
         updateZoom();
-
     } catch (error) {
-        alert("Không mở được camera.\nLý do: " + error.name + "\nChi tiết: " + error.message);
+        alert("Lỗi camera: " + error.message);
     }
 }
 
-/*
-====================================================
-ZOOM
-====================================================
-*/
+// 2. ZOOM
 async function changeZoom(value) {
     currentZoom += value;
-
     if (currentZoom < 1) currentZoom = 1;
     if (currentZoom > maxZoom) currentZoom = maxZoom;
-
     updateZoom();
-
     if (!videoTrack) return;
-
     const capabilities = videoTrack.getCapabilities();
     if (capabilities.zoom) {
-        try {
-            await videoTrack.applyConstraints({
-                advanced: [{ zoom: currentZoom }]
-            });
-        } catch (error) {
-            console.log(error);
-        }
+        try { await videoTrack.applyConstraints({ advanced: [{ zoom: currentZoom }] }); } 
+        catch (error) { console.log(error); }
     }
 }
+function updateZoom() { document.getElementById("zoomValue").innerText = currentZoom.toFixed(1) + "x"; }
 
-function updateZoom() {
-    document.getElementById("zoomValue").innerText = currentZoom.toFixed(1) + "x";
-}
-
-/*
-====================================================
-TIỀN XỬ LÝ ẢNH (TĂNG TƯƠNG PHẢN & CHUYỂN XÁM)
-====================================================
-*/
+// 3. TIỀN XỬ LÝ ẢNH CHUYÊN SÂU (LẤP ĐẦY FONT RỖNG + TRẮNG ĐEN)
 function preprocessCanvas(canvas) {
     const ctx = canvas.getContext('2d');
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
+    const width = canvas.width;
+    const height = canvas.height;
 
-    // Tăng độ tương phản (Contrast)
-    const contrast = 1.6; 
-    const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+    // A. LẤP ĐẦY FONT RỖNG (Dilation) bằng cách vẽ chập ảnh lên nhau
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = width; tempCanvas.height = height;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.drawImage(canvas, 0, 0);
 
-    for (let i = 0; i < data.length; i += 4) {
-        // Chuyển về ảnh xám (Grayscale)
-        let gray = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
-        
-        // Điều chỉnh độ tương phản
-        gray = factor * (gray - 128) + 128;
-        gray = Math.min(255, Math.max(0, gray));
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, width, height);
+    ctx.globalCompositeOperation = 'darken';
 
-        data[i]     = gray; // Red
-        data[i + 1] = gray; // Green
-        data[i + 2] = gray; // Blue
+    // Vẽ lệch nhiều hướng để nét đen dày lên, lấp chỗ rỗng
+    const offsets = [
+        [0,0], [1,0], [-1,0], [0,1], [0,-1],
+        [2,0], [-2,0], [0,2], [0,-2],
+        [1,1], [-1,-1], [1,-1], [-1,1]
+    ];
+    for (let [dx, dy] of offsets) {
+        ctx.drawImage(tempCanvas, dx, dy);
     }
+    ctx.globalCompositeOperation = 'source-over';
 
+    // B. THRESHOLD (Biến ảnh thành Trắng/Đen tuyệt đối để diệt nhiễu)
+    const imageData = ctx.getImageData(0, 0, width, height);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+        // Chuyển xám
+        let gray = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+        // Nếu điểm ảnh tối hơn 160 -> Đẩy thành Đen tuyền (0). Ngược lại -> Trắng bóc (255)
+        let value = gray < 160 ? 0 : 255;
+        data[i] = value;
+        data[i + 1] = value;
+        data[i + 2] = value;
+    }
     ctx.putImageData(imageData, 0, 0);
 }
 
-/*
-====================================================
-CHỤP ẢNH & CẮT ĐÚNG VÙNG KHUNG XANH (ROI)
-====================================================
-*/
+// 4. CHỤP VÀ CẮT VÙNG OCR
 async function captureImage() {
     const video = document.getElementById("video");
+    if (!video.srcObject) { alert("Hãy mở camera trước."); return; }
 
-    if (!video.srcObject) {
-        alert("Hãy mở camera trước.");
-        return;
-    }
-
-    const rawWidth = video.videoWidth;
-    const rawHeight = video.videoHeight;
-
-    // Tính toán tọa độ cắt tương ứng với ô guide (.guide: left 8%, top 35%, width 84%, height 30%)
-    const cropX = Math.floor(rawWidth * 0.08);
-    const cropY = Math.floor(rawHeight * 0.35);
-    const cropWidth = Math.floor(rawWidth * 0.84);
-    const cropHeight = Math.floor(rawHeight * 0.30);
+    const rawWidth = video.videoWidth; const rawHeight = video.videoHeight;
+    const cropX = Math.floor(rawWidth * 0.08); const cropY = Math.floor(rawHeight * 0.35);
+    const cropWidth = Math.floor(rawWidth * 0.84); const cropHeight = Math.floor(rawHeight * 0.30);
 
     const canvas = document.getElementById("canvas");
+    const scale = 2; // Phóng to 2x để rõ nét
+    canvas.width = cropWidth * scale; canvas.height = cropHeight * scale;
     
-    // Phóng to kích thước vùng cắt gấp 2 lần để chữ nét hơn
-    const scale = 2;
-    canvas.width = cropWidth * scale;
-    canvas.height = cropHeight * scale;
-
     const ctx = canvas.getContext("2d");
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
 
-    // Chỉ vẽ đúng vùng trong khung xanh lên canvas
-    ctx.drawImage(
-        video,
-        cropX, cropY, cropWidth, cropHeight,
-        0, 0, canvas.width, canvas.height
-    );
-
-    // Áp dụng tiền xử lý giúp OCR nhận diện chính xác
+    // Gọi hàm lấp font rỗng
     preprocessCanvas(canvas);
 
     const image = canvas.toDataURL("image/jpeg", 0.95);
@@ -475,112 +206,86 @@ async function captureImage() {
     await runOCR(canvas);
 }
 
-/*
-====================================================
-OCR
-====================================================
-*/
+// 5. CHẠY OCR TESSERACT
 async function runOCR(canvas) {
     const progress = document.getElementById("progress");
     progress.innerText = "⏳ Đang nhận dạng OCR...";
-
     try {
-        const result = await Tesseract.recognize(
-            canvas,
-            "eng",
-            {
-                logger: function(info) {
-                    if (info.status === "recognizing text") {
-                        progress.innerText = "OCR: " + Math.round(info.progress * 100) + "%";
-                    }
-                }
-            }
-        );
-
+        const result = await Tesseract.recognize(canvas, "eng", {
+            logger: info => { if (info.status === "recognizing text") progress.innerText = "OCR: " + Math.round(info.progress * 100) + "%"; }
+        });
         const text = result.data.text;
         document.getElementById("rawOCR").value = text;
-
         parseOCR(text);
         progress.innerText = "✅ OCR hoàn tất";
-
     } catch (error) {
-        console.error(error);
         progress.innerText = "❌ OCR lỗi";
         alert("OCR lỗi: " + error.message);
     }
 }
 
-/*
-====================================================
-TÁCH MODEL + CODE
-====================================================
-*/
+// 6. PHÂN TÍCH VÀ SỬA LỖI (AUTO-CORRECT)
 function parseOCR(text) {
-    // Xóa ô nhập cũ
     document.getElementById("modelOCR").value = "";
     document.getElementById("codeOCR").value = "";
+    let clean = text.replace(/\r/g, "\n").toUpperCase().trim();
 
-    let clean = text.replace(/\r/g, "\n").trim();
+    // Hàm phụ trợ: Ép chữ thành số (Dùng cho Model)
+    function charsToNumbers(str) {
+        return str.replace(/S/g, '5').replace(/B/g, '8')
+                  .replace(/Z/g, '2').replace(/O/g, '0')
+                  .replace(/I/g, '1').replace(/L/g, '1')
+                  .replace(/Q/g, '0');
+    }
 
-    /* 1. Tìm MODEL dạng 4 số - 3 số (Ví dụ: 2583-236) */
-    const modelMatch = clean.match(/\b\d{4}-\d{3}\b/);
+    // A. TÌM MODEL (XXXX-XXX)
+    // Nới lỏng regex vì số có thể bị đọc nhầm thành chữ
+    const modelMatch = clean.match(/\b[A-Z0-9]{4}-[A-Z0-9]{3}\b/);
     if (modelMatch) {
-        document.getElementById("modelOCR").value = modelMatch[0];
+        let rawModel = modelMatch[0];
+        document.getElementById("modelOCR").value = charsToNumbers(rawModel); // Tự động sửa 2S83 -> 2583
     }
 
-    /* 2. Tìm CODE dạng 4 số + 2 chữ (Ví dụ: 2638IV) */
-    const lines = clean.split(/\n+/);
+    // B. TÌM CODE (6 ký tự: 4 số + 2 chữ)
     let code = "";
-
-    for (let line of lines) {
-        let s = line.toUpperCase().replace(/[^A-Z0-9]/g, "");
-
-        // Sửa các lỗi phổ biến khi OCR nhầm chữ/số (1 -> I, 0 -> O) ở 2 ký tự cuối
-        const match = s.match(/(\d{4})([A-Z0-9]{2})/);
-
-        if (match) {
-            let digits = match[1];
-            let chars = match[2];
-
-            // Nếu 2 ký tự sau bị nhận nhầm số 1 thành chữ I hay ngược lại
-            chars = chars.replace(/1/g, "I").replace(/0/g, "O");
-            code = digits + chars;
-            break;
-        }
+    // Tìm chuỗi đứng sau chữ S/N hoặc SN có chứa 8-10 ký tự liền nhau
+    const snMatch = clean.match(/(?:S\/N|SN).*?([A-Z0-9]{8,10})/);
+    if (snMatch) {
+        code = snMatch[1];
+    } else {
+        // Nếu không có S/N, tìm chuỗi dài 10 ký tự bất kỳ
+        const fallbackMatch = clean.match(/\b[A-Z0-9]{10}\b/);
+        if (fallbackMatch) code = fallbackMatch[0];
     }
 
-    if (code) {
-        document.getElementById("codeOCR").value = code.substring(0, 6);
+    if (code && code.length >= 6) {
+        let first6 = code.substring(0, 6); // Lấy 6 ký tự đầu
+        
+        // 4 ký tự đầu bắt buộc là số
+        let part1 = charsToNumbers(first6.substring(0, 4));
+        
+        // 2 ký tự sau bắt buộc là chữ
+        let part2 = first6.substring(4, 6);
+        part2 = part2.replace(/1/g, 'I').replace(/0/g, 'O').replace(/8/g, 'B'); // Sửa '26381V' -> '2638IV'
+        
+        document.getElementById("codeOCR").value = part1 + part2;
     }
 }
 
-/*
-====================================================
-KIỂM TRA PASS / FAIL
-====================================================
-*/
+// 7. KIỂM TRA
 function checkResult() {
     const expectedModel = document.getElementById("expectedModel").value.trim().toUpperCase();
     const expectedCode = document.getElementById("expectedCode").value.trim().toUpperCase();
-
     const model = document.getElementById("modelOCR").value.trim().toUpperCase();
     const code = document.getElementById("codeOCR").value.trim().toUpperCase();
-
     const status = document.getElementById("status");
 
-    const modelOK = (model === expectedModel);
-    const codeOK = (code === expectedCode);
-
-    if (modelOK && codeOK) {
-        status.className = "status pass";
-        status.innerHTML = "✅ PASS";
+    if (model === expectedModel && code === expectedCode) {
+        status.className = "status pass"; status.innerHTML = "✅ PASS";
     } else {
-        status.className = "status fail";
-        status.innerHTML = "❌ FAIL";
+        status.className = "status fail"; status.innerHTML = "❌ FAIL";
     }
 }
-
 </script>
-
 </body>
 </html>
