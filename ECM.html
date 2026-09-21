@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>OCR QC - 2583</title>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: white;
+}
+
+.header {
+    text-align: center;
+    padding: 14px 10px;
+    background: #222;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.camera-box {
+    position: relative;
+    width: 100%;
+    background: #000;
+    overflow: hidden;
+}
+
+#video {
+    width: 100%;
+    display: block;
+    background: #000;
+}
+
+.guide {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 35%;
+    height: 30%;
+
+    border: 3px solid #00ff66;
+    border-radius: 8px;
+
+    pointer-events: none;
+}
+
+.guide-text {
+    position: absolute;
+    top: calc(35% - 30px);
+    width: 100%;
+    text-align: center;
+    color: #00ff66;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+.controls {
+    padding: 12px;
+    background: #222;
+}
+
+button {
+    border: none;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 4px;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-start {
+    background: #00c853;
+    color: white;
+}
+
+.btn-capture {
+    width: calc(100% - 8px);
+    background: #2196f3;
+    color: white;
+    font-size: 21px;
+}
+
+.btn-zoom {
+    background: #555;
+    color: white;
+    min-width: 65px;
+}
+
+.zoom-value {
+    display: inline-block;
+    min-width: 70px;
+    text-align: center;
+    font-size: 18px;
+}
+
+input {
+    width: 100%;
+    padding: 13px;
+    margin-top: 6px;
+    border-radius: 7px;
+    border: 1px solid #777;
+    background: #333;
+    color: white;
+    font-size: 19px;
+}
+
+.result {
+    margin: 12px;
+    padding: 15px;
+    border-radius: 10px;
+    background: #222;
+}
+
+.row {
+    margin: 10px 0;
+}
+
+.label {
+    color: #aaa;
+    font-size: 14px;
+}
+
+.value {
+    font-size: 23px;
+    font-weight: bold;
+    margin-top: 3px;
+}
+
+.pass {
+    background: #087f23;
+}
+
+.fail {
+    background: #b00020;
+}
+
+.status {
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 15px;
+}
+
+#preview {
+    width: 100%;
+    display: none;
+    margin-top: 10px;
+}
+
+#progress {
+    margin-top: 10px;
+    color: #00e676;
+}
+
+.expected {
+    background: #333;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+}
+
+textarea {
+    width: 100%;
+    min-height: 100px;
+    background: #222;
+    color: white;
+    border: 1px solid #666;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    OCR QC
+</div>
+
+<div class="camera-box">
+
+    <video id="video"
+           autoplay
+           playsinline
+           muted>
+    </video>
+
+    <div class="guide"></div>
+
+    <div class="guide-text">
+        Đưa nhãn vào khung
+    </div>
+
+</div>
+
+<div class="controls">
+
+    <button class="btn-start" onclick="startCamera()">
+        📷 MỞ CAMERA
+    </button>
+
+    <br>
+
+    <button class="btn-zoom" onclick="changeZoom(-0.5)">
+        −
+    </button>
+
+    <span class="zoom-value" id="zoomValue">
+        1.0x
+    </span>
+
+    <button class="btn-zoom" onclick="changeZoom(0.5)">
+        ＋
+    </button>
+
+    <br>
+
+    <button class="btn-capture" onclick="captureImage()">
+        📸 CHỤP & OCR
+    </button>
+
+    <div id="progress"></div>
+
+    <canvas id="canvas" style="display:none"></canvas>
+
+    <img id="preview">
+
+</div>
+
+
+<div class="result">
+
+    <div class="expected">
+        <b>DỮ LIỆU CẦN KIỂM TRA</b>
+
+        <div class="row">
+            <div class="label">MODEL</div>
+            <input id="expectedModel"
+                   value="2583-236">
+        </div>
+
+        <div class="row">
+            <div class="label">CODE</div>
+            <input id="expectedCode"
+                   value="2638IV">
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="label">
+            MODEL OCR
+        </div>
+
+        <input id="modelOCR">
+    </div>
+
+
+    <div class="row">
+        <div class="label">
+            CODE OCR
+        </div>
+
+        <input id="codeOCR">
+
+        <div style="font-size:13px;color:#aaa;margin-top:5px">
+            Chỉ lấy 6 ký tự đầu, 4 số cuối sẽ bỏ qua.
+        </div>
+    </div>
+
+
+    <button
+        style="width:100%;background:#ff9800;color:white"
+        onclick="checkResult()">
+
+        KIỂM TRA PASS / FAIL
+
+    </button>
+
+
+    <div id="status"></div>
+
+</div>
+
+
+<div class="result">
+
+    <b>TEXT OCR GỐC</b>
+
+    <textarea id="rawOCR"
+              readonly></textarea>
+
+</div>
+
+
+<script>
+
+let stream = null;
+
+let videoTrack = null;
+
+let currentZoom = 1;
+
+let maxZoom = 1;
+
+
+/*
+====================================================
+MỞ CAMERA
+====================================================
+*/
+
+async function startCamera() {
+    try {
+        // Kiểm tra xem trình duyệt có hỗ trợ API Camera không
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert("Trình duyệt không hỗ trợ Camera hoặc bạn đang không chạy trên môi trường bảo mật (HTTPS/Localhost).");
+            return;
+        }
+
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: { ideal: "environment" },
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+            },
+            audio: false
+        });
+
+        const video = document.getElementById("video");
+        video.srcObject = stream;
+        await video.play();
+
+        videoTrack = stream.getVideoTracks()[0];
+
+        // Lấy thông số zoom nếu thiết bị hỗ trợ
+        const capabilities = videoTrack.getCapabilities();
+
+        if (capabilities.zoom) {
+            maxZoom = capabilities.zoom.max || 1;
+            currentZoom = capabilities.zoom.min || 1;
+        } else {
+            maxZoom = 4;
+            currentZoom = 1;
+        }
+
+        updateZoom();
+
+    } catch (error) {
+        alert("Không mở được camera.\nLý do: " + error.name + "\nChi tiết: " + error.message + "\n\nHãy đảm bảo bạn đã cấp quyền Camera và đang chạy web trên HTTPS/Localhost.");
+    }
+}
+
+
+/*
+====================================================
+ZOOM
+====================================================
+*/
+
+async function changeZoom(value) {
+
+    currentZoom += value;
+
+
+    if (currentZoom < 1)
+        currentZoom = 1;
+
+
+    if (currentZoom > maxZoom)
+        currentZoom = maxZoom;
+
+
+    updateZoom();
+
+
+    if (!videoTrack)
+        return;
+
+
+    const capabilities =
+        videoTrack.getCapabilities();
+
+
+    if (capabilities.zoom) {
+
+        try {
+
+            await videoTrack.applyConstraints({
+
+                advanced: [
+                    {
+                        zoom: currentZoom
+                    }
+                ]
+
+            });
+
+        }
+
+        catch (error) {
+
+            console.log(error);
+
+        }
+
+    }
+
+}
+
+
+/*
+====================================================
+HIỂN THỊ ZOOM
+====================================================
+*/
+
+function updateZoom() {
+
+    document.getElementById("zoomValue")
+        .innerText =
+        currentZoom.toFixed(1) + "x";
+
+}
+
+
+/*
+====================================================
+CHỤP ẢNH
+====================================================
+*/
+
+async function captureImage() {
+
+    const video =
+        document.getElementById("video");
+
+    if (!video.srcObject) {
+
+        alert("Hãy mở camera trước.");
+
+        return;
+
+    }
+
+
+    const canvas =
+        document.getElementById("canvas");
+
+
+    const width =
+        video.videoWidth;
+
+    const height =
+        video.videoHeight;
+
+
+    canvas.width = width;
+
+    canvas.height = height;
+
+
+    const ctx =
+        canvas.getContext("2d");
+
+
+    ctx.drawImage(
+        video,
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    const image =
+        canvas.toDataURL("image/jpeg", 0.95);
+
+
+    document.getElementById("preview")
+        .src = image;
+
+
+    document.getElementById("preview")
+        .style.display = "block";
+
+
+    await runOCR(canvas);
+
+}
+
+
+/*
+====================================================
+OCR
+====================================================
+*/
+
+async function runOCR(canvas) {
+
+    const progress =
+        document.getElementById("progress");
+
+
+    progress.innerText =
+        "⏳ Đang nhận dạng OCR...";
+
+
+    try {
+
+        const result =
+            await Tesseract.recognize(
+
+                canvas,
+
+                "eng",
+
+                {
+
+                    logger: function(info) {
+
+                        if (
+                            info.status ===
+                            "recognizing text"
+                        ) {
+
+                            progress.innerText =
+                                "OCR: " +
+                                Math.round(
+                                    info.progress * 100
+                                ) +
+                                "%";
+
+                        }
+
+                    }
+
+                }
+
+            );
+
+
+        const text =
+            result.data.text;
+
+
+        document.getElementById("rawOCR")
+            .value = text;
+
+
+        parseOCR(text);
+
+
+        progress.innerText =
+            "✅ OCR hoàn tất";
+
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        progress.innerText =
+            "❌ OCR lỗi";
+
+        alert(
+            "OCR lỗi: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+/*
+====================================================
+TÁCH MODEL + CODE
+====================================================
+*/
+
+function parseOCR(text) {
+
+    /*
+    Chuẩn hóa OCR
+    */
+
+    let clean =
+        text
+        .replace(/\r/g, "\n")
+        .trim();
+
+
+    /*
+    Tìm MODEL dạng:
+    
+    2583-236
+    
+    */
+
+    const modelMatch =
+        clean.match(
+            /\b\d{4}-\d{3}\b/
+        );
+
+
+    if (modelMatch) {
+
+        document.getElementById("modelOCR")
+            .value =
+            modelMatch[0];
+
+    }
+
+
+    /*
+    Tìm chuỗi S/N
+    
+    Ví dụ OCR:
+    
+    2638IV2731
+    
+    Ta chỉ cần:
+    
+    2638IV
+    
+    */
+
+
+    const lines =
+        clean
+        .split(/\n+/);
+
+
+    let code = "";
+
+
+    for (let line of lines) {
+
+        /*
+        Chỉ giữ chữ và số
+        */
+
+        let s =
+            line
+            .toUpperCase()
+            .replace(/[^A-Z0-9]/g, "");
+
+
+        /*
+        Tìm chuỗi bắt đầu bằng
+        4 số + 2 chữ
+    
+        Ví dụ:
+    
+        2638IV2731
+    
+        */
+
+
+        const match =
+            s.match(
+                /(\d{4}[A-Z]{2})\d{0,4}/
+            );
+
+
+        if (match) {
+
+            code =
+                match[1];
+
+            break;
+
+        }
+
+    }
+
+
+    /*
+    Nếu OCR nhận I thành 1
+    hoặc ký tự lạ
+    
+    thử tìm chuỗi số + chữ
+    */
+
+
+    if (!code) {
+
+        for (let line of lines) {
+
+            let s =
+                line
+                .toUpperCase()
+                .replace(
+                    /[^A-Z0-9]/g,
+                    ""
+                );
+
+
+            const match =
+                s.match(
+                    /(\d{4}[A-Z0-9]{2})/
+                );
+
+
+            if (match) {
+
+                code =
+                    match[1];
+
+                break;
+
+            }
+
+        }
+
+    }
+
+
+    if (code) {
+
+        document.getElementById("codeOCR")
+            .value =
+            code.substring(0, 6);
+
+    }
+
+}
+
+
+/*
+====================================================
+KIỂM TRA
+====================================================
+*/
+
+function checkResult() {
+
+    const expectedModel =
+        document.getElementById(
+            "expectedModel"
+        ).value
+        .trim()
+        .toUpperCase();
+
+
+    const expectedCode =
+        document.getElementById(
+            "expectedCode"
+        ).value
+        .trim()
+        .toUpperCase();
+
+
+    const model =
+        document.getElementById(
+            "modelOCR"
+        ).value
+        .trim()
+        .toUpperCase();
+
+
+    const code =
+        document.getElementById(
+            "codeOCR"
+        ).value
+        .trim()
+        .toUpperCase();
+
+
+    const status =
+        document.getElementById(
+            "status"
+        );
+
+
+    const modelOK =
+        model === expectedModel;
+
+
+    const codeOK =
+        code === expectedCode;
+
+
+    if (
+        modelOK &&
+        codeOK
+    ) {
+
+        status.className =
+            "status pass";
+
+        status.innerHTML =
+            "✅ PASS";
+
+    }
+
+    else {
+
+        status.className =
+            "status fail";
+
+        status.innerHTML =
+            "❌ FAIL";
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
